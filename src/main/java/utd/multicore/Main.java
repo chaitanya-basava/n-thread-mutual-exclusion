@@ -48,7 +48,7 @@ public class Main {
         int algoId = Integer.parseInt(cmd.getOptionValue("algo"));
         int N = Integer.parseInt(cmd.getOptionValue("numThreads"));
         int C = Integer.parseInt(cmd.getOptionValue("csCount"));
-        Actor[] actors = new Actor[N];
+        Thread[] actors = new Thread[N];
 
         try {
             Class<?> clazz = ExclusionType.getClassByType(algoId);
@@ -57,7 +57,8 @@ public class Main {
             CriticalSection criticalSection = new CounterCriticalSection();
 
             for(int i = 0; i < N; i++) {
-                actors[i] = new Actor(i, C, exclusion, criticalSection);
+                Runnable actor = new Actor(i, C, exclusion, criticalSection);
+                actors[i] = new Thread(actor);
                 actors[i].start();
             }
             for(int i = 0; i < N; i++) actors[i].join();

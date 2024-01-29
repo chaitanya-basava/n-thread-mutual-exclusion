@@ -3,7 +3,7 @@ package utd.multicore;
 import utd.multicore.cs.CriticalSection;
 import utd.multicore.exclusion.Exclusion;
 
-public class Actor extends Thread {
+public class Actor implements Runnable {
     private final int id;
     private final int csCount;
     private final Exclusion exclusion;
