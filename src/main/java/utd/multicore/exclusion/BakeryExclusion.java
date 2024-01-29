@@ -2,18 +2,14 @@ package utd.multicore.exclusion;
 
 import utd.multicore.Main;
 
-import java.util.Arrays;
-
 public class BakeryExclusion extends Exclusion {
-    private final int[] token;
+    private final long[] token;
     private final boolean[] flag;
 
     public BakeryExclusion(int n) {
         super(n);
-        this.token = new int[n];
-        Arrays.fill(this.token, 0);
+        this.token = new long[n];
         this.flag = new boolean[n];
-        Arrays.fill(this.flag, false);
     }
 
     @Override
@@ -37,11 +33,9 @@ public class BakeryExclusion extends Exclusion {
         this.token[id] = 0;
     }
 
-    private int tokenMax() {
-        synchronized (this.token) {
-            int m = this.token[0];
-            for (int i = 1; i < this.getN(); i++) m = Math.max(m, this.token[i]);
-            return m;
-        }
+    private long tokenMax() {
+        long m = Long.MIN_VALUE;
+        for (int i = 0; i < this.getN(); i++) m = Math.max(m, this.token[i]);
+        return m;
     }
 }
