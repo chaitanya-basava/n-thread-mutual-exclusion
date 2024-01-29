@@ -38,8 +38,10 @@ public class BakeryExclusion extends Exclusion {
     }
 
     private int tokenMax() {
-        int m = this.token[0];
-        for (int i = 1; i < this.getN(); i++) m = Math.max(m, this.token[i]);
-        return m;
+        synchronized (this.token) {
+            int m = this.token[0];
+            for (int i = 1; i < this.getN(); i++) m = Math.max(m, this.token[i]);
+            return m;
+        }
     }
 }

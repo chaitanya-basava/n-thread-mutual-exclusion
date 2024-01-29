@@ -52,6 +52,7 @@ public class Main {
 
         try {
             Class<?> clazz = ExclusionType.getClassByType(algoId);
+            logger.info("Exclusion algorithm: " + clazz);
             Exclusion exclusion = (Exclusion) clazz.getDeclaredConstructor(int.class).newInstance(N);
             CriticalSection criticalSection = new CounterCriticalSection();
 
