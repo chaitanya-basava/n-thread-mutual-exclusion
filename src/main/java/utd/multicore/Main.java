@@ -48,7 +48,8 @@ public class Main {
         int algoId = Integer.parseInt(cmd.getOptionValue("algo"));
         int N = Integer.parseInt(cmd.getOptionValue("numThreads"));
         int C = Integer.parseInt(cmd.getOptionValue("csCount"));
-        Thread[] actors = new Thread[N];
+        Actor[] actors = new Actor[N];
+        Thread[] actorThreads = new Thread[N];
 
         try {
             Class<?> clazz = ExclusionType.getClassByType(algoId);
@@ -56,15 +57,36 @@ public class Main {
             Exclusion exclusion = (Exclusion) clazz.getDeclaredConstructor(int.class).newInstance(N);
             CriticalSection criticalSection = new CounterCriticalSection();
 
+            long actorStartMillis = System.currentTimeMillis();
             for(int i = 0; i < N; i++) {
-                Runnable actor = new Actor(i, C, exclusion, criticalSection);
-                actors[i] = new Thread(actor);
-                actors[i].start();
+                Actor actor = new Actor(i, C, exclusion, criticalSection);
+                actors[i] = actor;
+                actorThreads[i] = new Thread(actors[i]);
+                actorThreads[i].start();
             }
-            for(int i = 0; i < N; i++) actors[i].join();
+            for(int i = 0; i < N; i++) actorThreads[i].join();
+            long actorEndMillis = System.currentTimeMillis();
 
             logger.info("Final value of counter: " + criticalSection.getDetails());
             logger.info("Expected value of counter: " + (N * C));
+
+            double diff = (actorEndMillis - actorStartMillis) * 1.0;
+            double throughput = Double.parseDouble(criticalSection.getDetails()) / diff;
+            logger.info("System Throughput: " + throughput);
+
+            double avgTAT = 0, avgLatency = 0;
+            for(Actor actor: actors) {
+                for(int i = 0; i < C; i++) {
+                    avgLatency += actor.getLatencyAtI(i);
+                    avgTAT += actor.getTurnaroundTimeAtI(i);
+                }
+            }
+            avgTAT /= Double.parseDouble(criticalSection.getDetails());
+            avgLatency /= Double.parseDouble(criticalSection.getDetails());
+
+            logger.info("Latency: " + avgLatency);
+            logger.info("Turn Around Time: " + avgTAT);
+
         } catch (InvocationTargetException |
                  InstantiationException |
                  IllegalAccessException |
