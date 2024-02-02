@@ -1,7 +1,6 @@
 package utd.multicore.exclusion;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Stack;
 
 public class TournamentTreeExclusion extends Exclusion {
     private static class TournamentTree {
@@ -30,13 +29,25 @@ public class TournamentTreeExclusion extends Exclusion {
         public String toString() {
             return "(" + low + "-" + high + ")";
         }
+
+        public void printTree() { // inorder
+            Stack<TournamentTree> stack = new Stack<>();
+            stack.add(this);
+            while(!stack.isEmpty()) {
+                TournamentTree temp = stack.pop();
+                System.out.print(temp + " ");
+                if(temp.right != null) stack.add(temp.right);
+                if(temp.left != null) stack.add(temp.left);
+            }
+            System.out.println();
+        }
     }
 
     private final TournamentTree root;
 
     private TournamentTree buildTree(int start, int end) {
         TournamentTree node = new TournamentTree(start, end);
-        if (start < end-1) {
+        if (end - start > 1) {
             int mid = start + (end - start) / 2;
             node.left = buildTree(start, mid);
             node.right = buildTree(mid + 1, end);
@@ -44,55 +55,32 @@ public class TournamentTreeExclusion extends Exclusion {
         return node;
     }
 
-    private void printTree() {
-        Queue<TournamentTree> queue = new LinkedList<>();
-        queue.add(this.root);
-        while(!queue.isEmpty()) {
-            TournamentTree temp = queue.poll();
-            assert temp != null;
-            System.out.print(temp + " ");
-            if(temp.left != null) queue.add(temp.left);
-            if(temp.right != null) queue.add(temp.right);
-        }
-        System.out.println();
-    }
-
     public TournamentTreeExclusion(int n) {
         super(n);
         this.root = this.buildTree(0, n-1);
-        this.printTree();
+        this.root.printTree();
     }
 
     @Override
     public void lock(int id) {
-        this.traverseForward(this.root, id, true);
+        this.traverseTree(this.root, id, true);
     }
 
     @Override
     public void unlock(int id) {
-        this.traverseForward(this.root, id, false);
+        this.traverseTree(this.root, id, false);
     }
 
-    private void traverseForward(TournamentTree node, int k, boolean lockOp) {
+    private void traverseTree(TournamentTree node, int k, boolean lockOp) {
         if (node == null || k < node.low || k > node.high) return;
-        if (node.high - node.low <= 1) {
-            if(node.low == k) {
-                if(lockOp) node.lock(0);
-                else node.unlock(0);
-            }
-            else {
-                if(lockOp) node.lock(1);
-                else node.unlock(1);
-            }
+
+        int childIndex = (node.high - node.low <= 1) ? (k == node.low ? 0 : 1) : (node.left != null && k <= node.left.high ? 0 : 1);
+        if (!lockOp) node.unlock(childIndex);
+
+        if (node.high - node.low > 1) {
+            traverseTree(childIndex == 0 ? node.left : node.right, k, lockOp);
         }
-        else if (node.left != null && k <= node.left.high) {
-            if(!lockOp) node.unlock(0);
-            traverseForward(node.left, k, lockOp);
-            if(lockOp) node.lock(0);
-        } else if (node.right != null) {
-            if(!lockOp) node.unlock(1);
-            traverseForward(node.right, k, lockOp);
-            if(lockOp) node.lock(1);
-        }
+
+        if(lockOp) node.lock(childIndex);
     }
 }
