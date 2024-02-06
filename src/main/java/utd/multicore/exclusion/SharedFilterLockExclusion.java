@@ -1,16 +1,15 @@
 package utd.multicore.exclusion;
 
-import utd.multicore.Main;
 import java.util.stream.IntStream;
 
 public class SharedFilterLockExclusion extends Exclusion {
-    private final int[] level;
-    private final int[] victim;
+    private static volatile int[] level;
+    private static volatile int[] victim;
 
     public SharedFilterLockExclusion(int n) {
         super(n);
-        this.level = new int[n];
-        this.victim = new int[n];
+        level = new int[n];
+        victim = new int[n];
     }
 
     @Override
@@ -19,13 +18,13 @@ public class SharedFilterLockExclusion extends Exclusion {
             level[id] = i;
             victim[i] = id;
             final int finalI = i;
-            while (IntStream.range(0, this.getN()).anyMatch(k -> k != id && this.level[k] >= finalI)
-                    && victim[i] == id) Main.sleep(Main.SLEEP);
+            while (IntStream.range(0, this.getN()).anyMatch(k -> k != id && level[k] >= finalI)
+                    && victim[i] == id);
         }
     }
 
     @Override
     public void unlock(int id) {
-        this.level[id] = 0;
+        level[id] = 0;
     }
 }

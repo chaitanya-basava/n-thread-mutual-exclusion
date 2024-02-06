@@ -1,7 +1,5 @@
 package utd.multicore.exclusion;
 
-import utd.multicore.Main;
-
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -21,7 +19,7 @@ public class GeneralizedPetersonLockExclusion extends Exclusion {
         this.flag[id] = true;
         this.victim = id;
         while (IntStream.range(0, this.getN()).anyMatch(k -> k != id && this.flag[k])
-                && victim == id) Main.sleep(Main.SLEEP);
+                && victim == id);
     }
 
     @Override

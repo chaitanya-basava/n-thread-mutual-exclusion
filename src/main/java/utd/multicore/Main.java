@@ -11,7 +11,6 @@ import utd.multicore.exclusion.ExclusionType;
 import java.lang.reflect.InvocationTargetException;
 
 public class Main {
-    public static final int SLEEP = 0;
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private static CommandLine parseArgs(String[] args) {
@@ -93,14 +92,6 @@ public class Main {
                  NoSuchMethodException |
                  IllegalArgumentException |
                  InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static void sleep(int milliseconds) {
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
