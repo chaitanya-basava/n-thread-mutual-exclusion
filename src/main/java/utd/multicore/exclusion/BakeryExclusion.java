@@ -1,37 +1,40 @@
 package utd.multicore.exclusion;
 
+import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicLongArray;
+
 public class BakeryExclusion extends Exclusion {
-    private static volatile long[] token;
-    private static volatile boolean[] flag;
+    private static volatile AtomicLongArray token;
+    private static volatile AtomicIntegerArray flag;
 
     public BakeryExclusion(int n) {
         super(n);
-        token = new long[n];
-        flag = new boolean[n];
+        token = new AtomicLongArray(n);
+        flag = new AtomicIntegerArray(n);
     }
 
     @Override
     public void lock(int id) {
-        flag[id] = true;
-        token[id] = this.tokenMax() + 1;
-        flag[id] = false;
+        flag.set(id, 1);
+        token.set(id, this.tokenMax() + 1);
+        flag.set(id, 0);
 
         for(int i = 0; i < this.getN(); i++) {
             if(i == id) continue;
-            while (flag[i]);
-            while (token[i] != 0 && (token[id] > token[i] ||
-                                    (token[id] == token[i] && id > i)));
+            while (flag.get(i) == 1);
+            while (token.get(i) != 0 && (token.get(id) > token.get(i) ||
+                                    (token.get(id) == token.get(i) && id > i)));
         }
     }
 
     @Override
     public void unlock(int id) {
-        token[id] = 0;
+        token.set(id, 0);
     }
 
     private long tokenMax() {
         long m = Long.MIN_VALUE;
-        for (int i = 0; i < this.getN(); i++) m = Math.max(m, token[i]);
+        for (int i = 0; i < this.getN(); i++) m = Math.max(m, token.get(i));
         return m;
     }
 }

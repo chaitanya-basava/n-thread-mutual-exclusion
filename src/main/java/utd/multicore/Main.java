@@ -8,6 +8,8 @@ import utd.multicore.cs.CriticalSection;
 import utd.multicore.exclusion.Exclusion;
 import utd.multicore.exclusion.ExclusionType;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public class Main {
@@ -25,7 +27,6 @@ public class Main {
         options.addOption(numThreadsOption);
 
         Option csCountOption = new Option("c", "csCount", true, "num of cs requests");
-        csCountOption.setRequired(true);
         options.addOption(csCountOption);
 
         CommandLineParser parser = new DefaultParser();
@@ -46,13 +47,15 @@ public class Main {
         // String logPath = cmd.getOptionValue("log_file_path");
         int algoId = Integer.parseInt(cmd.getOptionValue("algo"));
         int N = Integer.parseInt(cmd.getOptionValue("numThreads"));
-        int C = Integer.parseInt(cmd.getOptionValue("csCount"));
+        int C = Integer.parseInt(cmd.getOptionValue("csCount", String.valueOf(1000000 / N)));
+        logger.info("Running for " + C + " CS executions each");
         Actor[] actors = new Actor[N];
         Thread[] actorThreads = new Thread[N];
 
         try {
             Class<?> clazz = ExclusionType.getClassByType(algoId);
-            logger.info("Exclusion algorithm: " + clazz);
+            String className = clazz.toString().split("\\.")[3];
+            logger.info("Exclusion algorithm: " + className);
             Exclusion exclusion = (Exclusion) clazz.getDeclaredConstructor(int.class).newInstance(N);
             CriticalSection criticalSection = new CounterCriticalSection();
 
@@ -86,6 +89,13 @@ public class Main {
             logger.info("Latency: " + avgLatency);
             logger.info("Turn Around Time: " + avgTAT);
 
+            try(FileWriter writer = new FileWriter("./tests/" + className + "-" + N + ".txt", true)) {
+                writer.append(String.valueOf(throughput)).append(",")
+                        .append(String.valueOf(avgTAT)).append(",")
+                        .append(String.valueOf(avgLatency)).append("\n");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } catch (InvocationTargetException |
                  InstantiationException |
                  IllegalAccessException |
