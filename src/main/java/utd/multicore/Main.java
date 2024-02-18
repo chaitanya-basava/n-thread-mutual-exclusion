@@ -89,7 +89,7 @@ public class Main {
             logger.info("Latency: " + avgLatency);
             logger.info("Turn Around Time: " + avgTAT);
 
-            try(FileWriter writer = new FileWriter("./tests/" + className + "-" + N + ".txt", true)) {
+            try(FileWriter writer = new FileWriter("./tests/" + algoId + "-" + N + ".csv", true)) {
                 writer.append(String.valueOf(throughput)).append(",")
                         .append(String.valueOf(avgTAT)).append(",")
                         .append(String.valueOf(avgLatency)).append("\n");
