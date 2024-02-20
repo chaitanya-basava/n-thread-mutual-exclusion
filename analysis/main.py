@@ -37,4 +37,4 @@ for i, metric in enumerate(metrics):
     plt.legend()
     plt.grid(True)
 
-    plt.show()
+    plt.savefig(f"./charts/{metric}.png")
